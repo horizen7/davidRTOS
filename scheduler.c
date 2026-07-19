@@ -1,16 +1,15 @@
 #include "scheduler.h"
 #include "task.h"
 #include <stdio.h>
+#define size 5
 
-TCB *taskList[5];
-TCB *readyTasks[5] = {0};
-int taskCount, readyCount = 0;
-int tick = 0;
-int size = sizeof(taskList)/sizeof(taskList[0]);
+TCB *taskList[size];
+TCB *readyTasks[size] = {0};
+unsigned int taskCount, readyCount, tick = 0;
 
 void scheduler_add_task(TCB *task)
 {
-    if(taskCount != 5)
+    if(taskCount < size)
     {
         taskList[taskCount] = task;
         taskCount++;
@@ -24,13 +23,13 @@ void scheduler_add_task(TCB *task)
 
 void queue_update(void)
 {
-    for(int i = 0; i < taskCount; i++){
+    for(unsigned int i = 0; i < taskCount; i++){
             if(taskList[i]->state == BLOCKED){
                 if(taskList[i]->wake_tick <= tick){
                     taskList[i]->state = READY;
 
                     int found = 0;
-                    for(int j = 0; j < readyCount; j++){
+                    for(unsigned int j = 0; j < readyCount; j++){
                         if(readyTasks[j] == taskList[i]){
                             found = 1;
                             break;
@@ -49,16 +48,26 @@ void scheduler_run(void)
 {
     while(1)
     {
-        tick++;
-        queue_update();
-        if(readyTasks[0] != 0){
-            readyTasks[0]->task_function(); delay();
-            readyTasks[0]->wake_tick = tick + 7;
+        if(readyCount > 0)
+        {
+            unsigned int i;
+            readyTasks[0]->state = RUNNING;
+            for(i = 0; i < taskCount; i++){
+                printf("Task %d wait time: %d, state: %d.\n", (i + 1), (taskList[i]->wake_tick - tick), taskList[i]->state);
+            }
+            readyTasks[0]->task_function();
+            readyTasks[0]->wake_tick = tick + readyTasks[0]->interval;
             readyTasks[0]->state = BLOCKED;
             readyCount--;
-            for(int i = 0; i <readyCount; i++){
+            for(i = 0; i <= readyCount; i++){
                 readyTasks[i] = readyTasks[i + 1];
-            } readyTasks[4] = 0;
+            } readyTasks[readyCount] = NULL;
         }
+        else{
+            printf("\nwaiting...\n");
+        }
+        delay();
+        tick++;
+        queue_update();
     }
 }
