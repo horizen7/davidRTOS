@@ -86,13 +86,16 @@ static void ready_insert(TCB* task)
     previous->next = task;
     task->prev = previous;
     task->next = current;
-    
+
     if(current != NULL){
         current->prev = task;
     }
 }
 
-static void blocked_insert(TCB* task);
+static void blocked_insert(TCB* task)
+{
+    
+}
 static void ready_remove(TCB* task);
 static void blocked_remove(TCB* task);
 
