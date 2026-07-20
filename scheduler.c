@@ -1,24 +1,41 @@
 #include "scheduler.h"
 #include "task.h"
 #include <stdio.h>
-#define size 5
+#include <stdlib.h>
 
-TCB *taskList[size];
-TCB *readyTasks[size] = {0};
 unsigned int taskCount, readyCount, tick = 0;
 
-void scheduler_add_task(TCB *task)
+static TCB* tcb_head = NULL;
+static TCB* tcb_tail = NULL;
+
+static TCB* ready_head = NULL;
+static TCB* blocked_head = NULL;
+
+void task_insert(TCB *task)
 {
-    if(taskCount < size)
-    {
-        taskList[taskCount] = task;
-        taskCount++;
-        if(task->state == READY){
-            readyTasks[readyCount] = task;
-            readyCount++;
-        }
+}
+
+void create_tcb(TCB** tail, void (*function)(void), taskState state, taskPriority priority, unsigned int interval)
+{
+    TCB* new_tcb = malloc(sizeof(TCB));
+    if(new_tcb == NULL){
+        printf("Error: unable to allocate memory.\n");
+        return;
     }
-    else{ printf("Too much going on in my head.."); }
+    *new_tcb = (TCB){
+        .task_function = function,
+        .state = state,
+        .priority = priority,
+        .interval = interval,
+        .prev = *tail,
+        .next = NULL
+    };
+    (*tail)->next = new_tcb;
+    *tail = new_tcb;
+    if(state == READY){
+
+    }
+
 }
 
 void queue_update(void)
