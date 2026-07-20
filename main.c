@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "task.h"
 #include "scheduler.h"
+#include "config.h"
 
 TCB downTCB = {
     .task_function = &down,

@@ -1,25 +1,22 @@
 #include "scheduler.h"
 #include "task.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 unsigned int taskCount, readyCount, tick = 0;
 
-static TCB* tcb_head = NULL;
-static TCB* tcb_tail = NULL;
-
+TCB* master_list[MAX_TASKS];
+static int task_count = 0;
 static TCB* ready_head = NULL;
 static TCB* blocked_head = NULL;
 
-void task_insert(TCB *task)
-{
-}
 
-void create_tcb(TCB** tail, void (*function)(void), taskState state, taskPriority priority, unsigned int interval)
+void create_tcb(void (*function)(void), taskState state, taskPriority priority, unsigned int interval)
 {
     TCB* new_tcb = malloc(sizeof(TCB));
     if(new_tcb == NULL){
-        printf("Error: unable to allocate memory.\n");
+        printf("\n### Error: unable to allocate memory. ###\n");
         return;
     }
     *new_tcb = (TCB){
@@ -27,18 +24,79 @@ void create_tcb(TCB** tail, void (*function)(void), taskState state, taskPriorit
         .state = state,
         .priority = priority,
         .interval = interval,
-        .prev = *tail,
-        .next = NULL
     };
-    (*tail)->next = new_tcb;
-    *tail = new_tcb;
-    if(state == READY){
-
+    if(task_count < MAX_TASKS){
+        master_list[task_count] = new_tcb;
+        taskCount++;
     }
-
+    task_insert(new_tcb);
 }
 
-void queue_update(void)
+static void task_insert(TCB* task)
+{
+    switch(task->state){
+        case READY:
+        ready_insert(task);
+        break;
+        case BLOCKED:
+        blocked_insert(task);
+        break;
+        case RUNNING:
+        printf("\n### Error: tried inserting running task. ###\n");
+        break;
+    }
+}
+
+static void task_remove(TCB* task)
+{
+    switch(task->state){
+        case READY:
+        ready_remove(task);
+        break;
+        case BLOCKED:
+        blocked_remove(task);
+        break;
+        case RUNNING:
+        printf("\n### Error: tried removing running task. ###\n");
+        break;
+    }
+}
+
+static void ready_insert(TCB* task)
+{
+    if(ready_head == NULL){
+        ready_head = task;
+        task->prev = NULL;
+        task->next = NULL;
+        return;
+    }
+    if(task->priority > ready_head->priority){
+        ready_head->prev = task;
+        task->next = ready_head;
+        task->prev = NULL;
+        ready_head = task;
+        return;
+    }
+    TCB* current = ready_head;
+    TCB* previous = NULL;
+    while(current != NULL && current->priority >= task->priority){
+        previous = current;
+        current = current->next;
+    }
+    previous->next = task;
+    task->prev = previous;
+    task->next = current;
+    
+    if(current != NULL){
+        current->prev = task;
+    }
+}
+
+static void blocked_insert(TCB* task);
+static void ready_remove(TCB* task);
+static void blocked_remove(TCB* task);
+
+static void queue_update(void)
 {
     for(unsigned int i = 0; i < taskCount; i++){
             if(taskList[i]->state == BLOCKED){

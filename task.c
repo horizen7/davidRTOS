@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "task.h"
+#include "config.h"
 #include <stdio.h>
 
 void delay(void){ for(int i = 0; i < 1000000000; i++); }
