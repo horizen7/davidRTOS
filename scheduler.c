@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-unsigned int taskCount, readyCount, tick = 0;
+unsigned int taskCount, global_tick = 0;
 
 TCB* master_list[MAX_TASKS];
-static int task_count = 0;
 static TCB* ready_head = NULL;
 static TCB* blocked_head = NULL;
+static TCB* current_tcb = NULL;
 
 
 void create_tcb(void (*function)(void), taskState state, taskPriority priority, unsigned int interval)
@@ -22,24 +22,23 @@ void create_tcb(void (*function)(void), taskState state, taskPriority priority, 
     *new_tcb = (TCB){
         .task_function = function,
         .state = state,
-        .priority = priority,
-        .interval = interval,
+        .priority = priority
     };
-    if(task_count < MAX_TASKS){
-        master_list[task_count] = new_tcb;
+    if(taskCount < MAX_TASKS){
+        master_list[taskCount] = new_tcb;
         taskCount++;
     }
     task_insert(new_tcb);
 }
 
-static void task_insert(TCB* task)
+static void insert_task(TCB* task)
 {
     switch(task->state){
         case READY:
-        ready_insert(task);
+        insert_ready(task);
         break;
         case BLOCKED:
-        blocked_insert(task);
+        insert_blocked(task);
         break;
         case RUNNING:
         printf("\n### Error: tried inserting running task. ###\n");
@@ -47,14 +46,14 @@ static void task_insert(TCB* task)
     }
 }
 
-static void task_remove(TCB* task)
+static void remove_task(TCB* task)
 {
     switch(task->state){
         case READY:
-        ready_remove(task);
+        remove_ready(task);
         break;
         case BLOCKED:
-        blocked_remove(task);
+        remove_blocked(task);
         break;
         case RUNNING:
         printf("\n### Error: tried removing running task. ###\n");
@@ -62,8 +61,9 @@ static void task_remove(TCB* task)
     }
 }
 
-static void ready_insert(TCB* task)
+static void insert_ready(TCB* task)
 {
+    task->state = READY;
     if(ready_head == NULL){
         ready_head = task;
         task->prev = NULL;
@@ -92,60 +92,113 @@ static void ready_insert(TCB* task)
     }
 }
 
-static void blocked_insert(TCB* task)
+static void insert_blocked(TCB* task)
 {
+    task->state = BLOCKED;
+    if(blocked_head == NULL){
+        blocked_head = task;
+        task->prev = NULL;
+        task->next = NULL;
+        return;
+    }
+    if(task->wake_tick < blocked_head->wake_tick){
+        blocked_head->prev = task;
+        task->next = blocked_head;
+        task->prev = NULL;
+        blocked_head = task;
+        return;
+    }
+    TCB* current = blocked_head;
+    TCB* previous = NULL;
+    while(current != NULL && current->wake_tick <= task->wake_tick){
+        previous = current;
+        current = current->next;
+    }
+    previous->next = task;
+    task->prev = previous;
+    task->next = current;
+
+    if(current != NULL){
+        current->prev = task;
+    }
+
+}
+static void remove_ready(TCB* task)
+{
+    if(task == NULL){
+        printf("\n### Error: trying to work with nullpointer. ###\n");
+        return;
+    }
+    if(task->prev != NULL){
+        task->prev->next = task->next;
+    }
+    else{
+        ready_head = task->next;
+    }
+    if(task->next != NULL){
+        task->next->prev = task->prev;
+    }
+    
+    task->next = NULL;
+    task->prev = NULL;
     
 }
-static void ready_remove(TCB* task);
-static void blocked_remove(TCB* task);
-
-static void queue_update(void)
+static void remove_blocked(TCB* task)
 {
-    for(unsigned int i = 0; i < taskCount; i++){
-            if(taskList[i]->state == BLOCKED){
-                if(taskList[i]->wake_tick <= tick){
-                    taskList[i]->state = READY;
+    if(task == NULL){
+        printf("\n### Error: trying to work with nullpointer. ###\n");
+        return;
+    }
+    if(task->prev != NULL){
+        task->prev->next = task->next;
+    }
+    else{
+        blocked_head = task->next;
+    }
+    if(task->next != NULL){
+        task->next->prev = task->prev;
+    }
+    
+    task->next = NULL;
+    task->prev = NULL;
+}
 
-                    int found = 0;
-                    for(unsigned int j = 0; j < readyCount; j++){
-                        if(readyTasks[j] == taskList[i]){
-                            found = 1;
-                            break;
-                        }
-                    }
-                    if(!found && readyCount < 5){
-                        readyTasks[readyCount] = taskList[i];
-                        readyCount++;
-                    }
-                }
-            }
-        }
+static void tick(void)
+{
+    global_tick++;
+    update_blocked();
+}
+
+static void update_blocked()
+{
+    while(blocked_head != NULL && blocked_head->wake_tick <= global_tick){
+        TCB* task = blocked_head;
+        remove_blocked(blocked_head);
+        task->state = READY;
+        insert_ready(task);
+    }
+}
+
+void task_delay(int wait)
+{
+    current_tcb->wake_tick = global_tick + wait;
+    insert_blocked(current_tcb);
 }
 
 void scheduler_run(void)
 {
     while(1)
     {
-        if(readyCount > 0)
+        if(ready_head != NULL)
         {
-            unsigned int i;
-            readyTasks[0]->state = RUNNING;
-            for(i = 0; i < taskCount; i++){
-                printf("Task %d wait time: %d, state: %d.\n", (i + 1), (taskList[i]->wake_tick - tick), taskList[i]->state);
-            }
-            readyTasks[0]->task_function();
-            readyTasks[0]->wake_tick = tick + readyTasks[0]->interval;
-            readyTasks[0]->state = BLOCKED;
-            readyCount--;
-            for(i = 0; i <= readyCount; i++){
-                readyTasks[i] = readyTasks[i + 1];
-            } readyTasks[readyCount] = NULL;
+            current_tcb = ready_head;
+            remove_ready(current_tcb);
+            current_tcb->state = RUNNING;
+
+            current_tcb->task_function();
+            task_delay(100);
         }
-        else{
-            printf("\nwaiting...\n");
-        }
-        delay();
-        tick++;
-        queue_update();
+        tick();
+        printf("worked");
     }
 }

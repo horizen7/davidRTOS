@@ -6,36 +6,31 @@
 TCB downTCB = {
     .task_function = &down,
     .priority = 1,
-    .state = READY,
-    .interval = 7
+    .state = READY
 };
 
 TCB helloTCB = {
     .task_function = &hello,
     .priority = 3,
-    .state = READY,
-    .interval = 8
+    .state = READY
 };
 
 TCB countTCB = {
     .task_function = &count,
     .priority = 3,
-    .state = READY,
-    .interval = 2
+    .state = READY
 };
 
 TCB listTCB = {
     .task_function = &list,
     .priority = 2,
-    .state = READY,
-    .interval = 3
+    .state = READY
 };
 
 TCB pointTCB = {
     .task_function = &point,
     .priority = 1,
-    .state = READY,
-    .interval = 5
+    .state = READY
 };
 
 int main(void)
