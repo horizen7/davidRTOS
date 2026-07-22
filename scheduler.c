@@ -192,30 +192,29 @@ void scheduler_run(void)
 {
     while(1)
     {
+        tick();
+        printf("\n### global_tick count: %d\nWaiting list:\n", global_tick);
         if(blocked_head != NULL){
             TCB* foo = blocked_head;
-            printf("\nWaiting list:\n");
             while(foo != NULL){
-                printf("%s | %d more ticks\n", foo->op_name, (foo->wake_tick - global_tick));
+                printf("%s | wake: %d | remaining: %d\n", foo->op_name, foo->wake_tick, (global_tick - foo->wake_tick));
                 foo = foo->next;
             }
-        }
+        }printf("\n");
+        printf("Ready list: \n");
         if(ready_head != NULL)
         {
             TCB* foo = ready_head;
-            printf("Ready list: \n");
             while(foo != NULL){
                 printf("%s | priority: %d\n", foo->op_name, foo->priority);
                 foo = foo->next;
-            }
+            }printf("\n");
             current_tcb = ready_head;
             remove_ready(current_tcb);
             current_tcb->state = RUNNING;
 
             current_tcb->task_function();
         }
-        tick();
-        delay();
         delay();
         delay();
     }
