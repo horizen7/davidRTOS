@@ -28,11 +28,13 @@ Having a function that takes in the duration of delay as a parameter and assigns
 
 Tradeoff:
 
-## 
+## Starving tasks
 
 Problem:
+With the current algorithm for the ready queue, with the high priority tasks executing first, isnt there a chance that the low priority tasks just never get done. 
 
 Decision:
+Apparently this is how it should be in rtos. Was maybe thinking of a system that after so many tasks in a high priority jumping and executing a low one or something. 
 
 Implementation:
 

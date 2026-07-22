@@ -6,41 +6,29 @@
 void delay(void){ for(int i = 0; i < 1000000000; i++); }
 
 void down(void) {
-    printf("Counting down from 3, \n"); delay();
-    for(int i = 2; i >= 0; i--){
-        printf("%d,\n", i);
-        delay();
-    }
+    printf("Ran task down. Priority: LOW\n");
+    task_delay(2);
 }
 
 void hello(void) {
-    printf("Hello World!!\n");
+    printf("Ran task hello. Hello World!! Priority: HIGH\n");
+    task_delay(5);
 }
 
 void count(void)
 {
-    int i = 0;
-    while(i < 2){
-        printf("I am Davud Ro. ");
-        i++;
-        delay();
-    } printf("\n");
+    printf("Ran task count. Priority: HIGH\n");
+    task_delay(2);
 }
 
 void list(void)
 {
-    int arr[3] = {34, 634, 23};
-    printf("Iterating through list.\n");
-    for(int i = 0; i < 3; i++) {
-        printf("Index: %d | Element: %d\n", i, arr[i]);
-        delay();
-    }
+    printf("Ran task list. Priority: MEDIUM\n");
+    task_delay(7);
 }
 
 void point(void)
 {
-    int x = 30;
-    int *ptr = &x;
-
-    printf("%d, %p, %d\n", x, (void*)ptr, *ptr);
+    printf("Ran task point. Priority: MEDIUM\n");
+    task_delay(4);
 }

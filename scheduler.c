@@ -3,6 +3,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 unsigned int taskCount, global_tick = 0;
 
@@ -12,7 +13,7 @@ static TCB* blocked_head = NULL;
 static TCB* current_tcb = NULL;
 
 
-void create_tcb(void (*function)(void), taskState state, taskPriority priority, unsigned int interval)
+void create_tcb(void (*function)(void), taskState state, taskPriority priority, char name[])
 {
     TCB* new_tcb = malloc(sizeof(TCB));
     if(new_tcb == NULL){
@@ -24,11 +25,12 @@ void create_tcb(void (*function)(void), taskState state, taskPriority priority, 
         .state = state,
         .priority = priority
     };
+    strcpy(new_tcb->op_name, name);
     if(taskCount < MAX_TASKS){
         master_list[taskCount] = new_tcb;
         taskCount++;
     }
-    task_insert(new_tcb);
+    insert_task(new_tcb);
 }
 
 static void insert_task(TCB* task)
@@ -169,7 +171,7 @@ static void tick(void)
     update_blocked();
 }
 
-static void update_blocked()
+static void update_blocked(void)
 {
     while(blocked_head != NULL && blocked_head->wake_tick <= global_tick){
         TCB* task = blocked_head;
@@ -181,6 +183,7 @@ static void update_blocked()
 
 void task_delay(int wait)
 {
+    if(current_tcb == NULL){ return; }
     current_tcb->wake_tick = global_tick + wait;
     insert_blocked(current_tcb);
 }
@@ -189,16 +192,31 @@ void scheduler_run(void)
 {
     while(1)
     {
+        if(blocked_head != NULL){
+            TCB* foo = blocked_head;
+            printf("\nWaiting list:\n");
+            while(foo != NULL){
+                printf("%s | %d more ticks\n", foo->op_name, (foo->wake_tick - global_tick));
+                foo = foo->next;
+            }
+        }
         if(ready_head != NULL)
         {
+            TCB* foo = ready_head;
+            printf("Ready list: \n");
+            while(foo != NULL){
+                printf("%s | priority: %d\n", foo->op_name, foo->priority);
+                foo = foo->next;
+            }
             current_tcb = ready_head;
             remove_ready(current_tcb);
             current_tcb->state = RUNNING;
 
             current_tcb->task_function();
-            task_delay(100);
         }
         tick();
-        printf("worked");
+        delay();
+        delay();
+        delay();
     }
 }

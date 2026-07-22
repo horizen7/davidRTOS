@@ -12,6 +12,7 @@ typedef struct TCB
     int priority;//1, 2, 3, asending importance
     unsigned int wake_tick;
     unsigned int time_slice_remaining;
+    char op_name[10];
 } TCB;
 
 typedef enum
@@ -29,7 +30,7 @@ typedef enum
 } taskPriority;
 
 
-void create_tcb(void (*function)(void), taskState state, taskPriority priority, unsigned int interval);//call insert within
+void create_tcb(void (*function)(void), taskState state, taskPriority priority, char[]);//call insert within
 void scheduler_run(void);
 
 static void pop_head(TCB** head);
