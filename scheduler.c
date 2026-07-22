@@ -12,8 +12,17 @@ static TCB* ready_head = NULL;
 static TCB* blocked_head = NULL;
 static TCB* current_tcb = NULL;
 
+static void tick();
+static void update_blocked();
+static void insert_task(TCB* task);
+static void remove_task(TCB* task);
+static void insert_ready(TCB* task);
+static void insert_blocked(TCB* task);
+static void remove_ready(TCB* task);
+static void remove_blocked(TCB* task);
 
-void create_tcb(void (*function)(void), taskState state, taskPriority priority, char name[])
+
+void task_create(void (*function)(void), taskState state, taskPriority priority, char name[])
 {
     TCB* new_tcb = malloc(sizeof(TCB));
     if(new_tcb == NULL){
@@ -23,12 +32,19 @@ void create_tcb(void (*function)(void), taskState state, taskPriority priority, 
     *new_tcb = (TCB){
         .task_function = function,
         .state = state,
-        .priority = priority
+        .priority = priority,
+        .wake_tick = 0,
+        .next = NULL,
+        .prev = NULL
     };
     strcpy(new_tcb->op_name, name);
     if(taskCount < MAX_TASKS){
         master_list[taskCount] = new_tcb;
         taskCount++;
+    }
+    else{
+        printf("\n### Error: max task count reached. ###\n");
+        return;
     }
     insert_task(new_tcb);
 }
@@ -193,18 +209,18 @@ void scheduler_run(void)
     while(1)
     {
         tick();
-        printf("\n### global_tick count: %d\nWaiting list:\n", global_tick);
+        printf("\n### global_tick count: %d\n\nWaiting list:\n", global_tick);
         if(blocked_head != NULL){
             TCB* foo = blocked_head;
             while(foo != NULL){
-                printf("%s | wake: %d | remaining: %d\n", foo->op_name, foo->wake_tick, (global_tick - foo->wake_tick));
+                printf("%s | wake: %d | remaining: %d\n", foo->op_name, foo->wake_tick, (foo->wake_tick - global_tick));
                 foo = foo->next;
             }
         }printf("\n");
         printf("Ready list: \n");
         if(ready_head != NULL)
         {
-            TCB* foo = ready_head;
+            TCB* foo = ready_head->next;
             while(foo != NULL){
                 printf("%s | priority: %d\n", foo->op_name, foo->priority);
                 foo = foo->next;
@@ -212,6 +228,7 @@ void scheduler_run(void)
             current_tcb = ready_head;
             remove_ready(current_tcb);
             current_tcb->state = RUNNING;
+            printf("RUNNING: %s | priority: %d\n", current_tcb->op_name, current_tcb->priority);
 
             current_tcb->task_function();
         }

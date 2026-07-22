@@ -5,11 +5,11 @@
 
 int main(void)
 {
-    create_tcb(down, READY, LOW, "down");
-    create_tcb(hello, READY, HIGH, "hello");
-    create_tcb(count, READY, HIGH, "count");
-    create_tcb(list, READY, MEDIUM, "list");
-    create_tcb(point, READY, MEDIUM, "point");
+    task_create(down, READY, LOW, "down");
+    task_create(hello, READY, HIGH, "hello");
+    task_create(count, READY, HIGH, "count");
+    task_create(list, READY, MEDIUM, "list");
+    task_create(point, READY, MEDIUM, "point");
 
     scheduler_run();
     
