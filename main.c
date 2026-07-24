@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include "task.h"
 #include "scheduler.h"
+#include "queue.h"
 #include "config.h"
 
 int main(void){
-    
+
     task_create(down, LOW, "down");
     task_create(hello, HIGH, "hello");
     task_create(count, HIGH, "count");

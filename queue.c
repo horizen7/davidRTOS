@@ -104,7 +104,7 @@ void remove_blocked(TCB* task){
     task->prev = NULL;
 }
 
-void queue_tick(unsigned int tick){
+void queue_tick_blocked(unsigned int tick){
     while(blocked_head != NULL && blocked_head->wake_tick <= tick){
         TCB* task = blocked_head;
         remove_blocked(blocked_head);

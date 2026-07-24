@@ -1,6 +1,8 @@
 #ifndef TASK_H
 #define TASK_H
 
+#include "scheduler.h"
+
 void task_delay(int);
 void task_yield(void);
 void task_create(void (*function)(void), taskPriority priority, char[]);

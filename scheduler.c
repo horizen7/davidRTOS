@@ -4,7 +4,6 @@
 #include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 unsigned int global_tick = 0;
 
@@ -20,35 +19,24 @@ void set_current(TCB* setter){
     current_tcb = setter;
 }
 
-static tick(void){
+unsigned int gete_global_tick(){
+    return global_tick;
+}
+
+static void tick(void){
     global_tick++;
-    queue_tick(global_tick);
+    queue_tick_blocked(global_tick);
 }
 
 void scheduler_run(void){
     while(1)
     {
         tick();
-        printf("\n### global_tick count: %d\n\nWaiting list:\n", global_tick);
-        if(blocked_head != NULL){
-            TCB* foo = blocked_head;
-            while(foo != NULL){
-                printf("%s | wake: %d, remaining: %d\n", foo->op_name, foo->wake_tick, (foo->wake_tick - global_tick));
-                foo = foo->next;
-            }
-        }printf("\n");
-        printf("Ready list: \n");
-        if(ready_head != NULL)
+        current_tcb = pop_ready_queue();
+        if(current_tcb != NULL)
         {
-            TCB* foo = ready_head->next;
-            while(foo != NULL){
-                printf("%s | priority: %d\n", foo->op_name, foo->priority);
-                foo = foo->next;
-            }printf("\n");
-            current_tcb = ready_head;
-            remove_ready(current_tcb);
             current_tcb->state = RUNNING;
-            printf("RUNNING: %s | priority: %d\n", current_tcb->op_name, current_tcb->priority);
+            printf("\nglobal_tick: %d\nRUNNING: %s | priority: %d\n", global_tick, current_tcb->op_name, current_tcb->priority);
 
             current_tcb->task_function();
 

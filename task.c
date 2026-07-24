@@ -4,6 +4,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 TCB* master_list[MAX_TASKS];
 unsigned int taskCount = 0;
@@ -50,7 +51,7 @@ void delete_task(TCB* task){
                 case RUNNING:
                     return;
                 case TERMINATED:
-                    return;
+                    break;
             }
 
             for(unsigned int j = i; j < taskCount - 1; j++){
@@ -81,7 +82,7 @@ void task_delay(int wait){
 }
 
 void yield_task(void){
-    if(get_current == NULL){
+    if(get_current() == NULL){
         return;
     }
     TCB* task = get_current();
