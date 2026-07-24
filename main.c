@@ -3,13 +3,13 @@
 #include "scheduler.h"
 #include "config.h"
 
-int main(void)
-{
-    task_create(down, READY, LOW, "down");
-    task_create(hello, READY, HIGH, "hello");
-    task_create(count, READY, HIGH, "count");
-    task_create(list, READY, MEDIUM, "list");
-    task_create(point, READY, MEDIUM, "point");
+int main(void){
+    
+    task_create(down, LOW, "down");
+    task_create(hello, HIGH, "hello");
+    task_create(count, HIGH, "count");
+    task_create(list, MEDIUM, "list");
+    task_create(point, MEDIUM, "point");
 
     scheduler_run();
     

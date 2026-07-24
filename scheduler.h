@@ -16,9 +16,10 @@ typedef struct TCB
 
 typedef enum
 {
-    READY,  //0
-    RUNNING,//1
-    BLOCKED //2
+    READY,
+    RUNNING,
+    BLOCKED,
+    TERMINATED
 } taskState;
 
 typedef enum
@@ -28,14 +29,10 @@ typedef enum
     HIGH
 } taskPriority;
 
-
-void task_create(void (*function)(void), taskState state, taskPriority priority, char[]);//call insert within
 void scheduler_run(void);
-void task_delay(int);
+TCB* get_current(void);
+void set_current(TCB* setter);
 
 extern unsigned int global_tick;
-
-
-
 
 #endif
