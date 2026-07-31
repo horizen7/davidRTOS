@@ -1,5 +1,5 @@
 #include "queue.h"
-#include "scheduler.h"
+#include "tcb.h"
 #include <stdlib.h>
 #include <stdio.h>
 

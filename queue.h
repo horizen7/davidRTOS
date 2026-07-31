@@ -1,7 +1,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include "scheduler.h"
+#include "tcb.h"
 
 void insert_ready(TCB* task);
 void insert_blocked(TCB* task);

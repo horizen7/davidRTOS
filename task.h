@@ -1,7 +1,7 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include "scheduler.h"
+#include "tcb.h"
 
 void task_delay(int);
 void task_yield(void);
@@ -10,13 +10,9 @@ void delete_task(TCB*);
 void delay(void);
 
 void down(void);
-
 void hello(void);
-
 void count(void);
-
 void list(void);
-
 void point(void);
 
 #endif

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "task.h"
 #include "scheduler.h"
-#include "queue.h"
+#include "tcb.h"
 #include "config.h"
 
 int main(void){

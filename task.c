@@ -1,7 +1,7 @@
 #include "scheduler.h"
 #include "task.h"
-#include "queue.h"
 #include "config.h"
+#include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,13 +75,13 @@ void task_delay(int wait){
         return;
     }
     TCB* task = get_current();
-    task->wake_tick = global_tick + wait;
+    task->wake_tick = get_global_tick() + wait;
     task->state = BLOCKED;
     insert_blocked(task);
     set_current(NULL);
 }
 
-void yield_task(void){
+void task_yield(void){
     if(get_current() == NULL){
         return;
     }
@@ -96,11 +96,7 @@ void delay(void){ for(int i = 0; i < 1000000000; i++); }
 /*** TASKS ***/
 
 void down(void){ task_delay(2); }
-
 void hello(void){ printf("Hello World!!"); }
-
 void count(void){ task_delay(2); }
-
-void list(void){ printf("long day."); }
-
+void list(void){ printf("long day."); task_yield(); }
 void point(void){ task_delay(4); }
