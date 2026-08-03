@@ -4,6 +4,8 @@
 #include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "synch.h"
+
 
 unsigned int global_tick;
 static TCB* current_tcb;
@@ -17,6 +19,12 @@ void scheduler_init(void){
     current_tcb = NULL;
 
     task_create(idle_function, IDLE_PRIORITY, "idle_task");
+}
+
+static void scheduler_print(void){
+    printf("### global_tick: %d\n\n", global_tick);
+    printf("RUNNING: %s, %d\n", current_tcb->op_name, current_tcb->priority);
+    print_queues();
 }
 
 TCB* get_current(void){
@@ -39,20 +47,25 @@ static void tick(void){
 void scheduler_run(void){
     while(1)
     {
+        //  tick the global count, as long as the current tcb isnt null, run its task.
+        //  if task was idle task, throw it back into the ready list.
+        //  else check if current points to null, since delay or yield will throw tcb into respective list.
         tick();
-        current_tcb = pop_ready_queue();
-        if(current_tcb != NULL)
+        TCB* task = pop_ready_queue();
+        current_tcb = task;
+        if(task != NULL)
         {
-            current_tcb->state = RUNNING;
-            printf("\nglobal_tick: %d\nRUNNING: %s | priority: %d\n", global_tick, current_tcb->op_name, current_tcb->priority);
-
-            current_tcb->task_function();
-            if(current_tcb->priority == IDLE_PRIORITY){
-                
+            task->state = RUNNING;
+            scheduler_print();
+            task->task_function();
+            
+            if(task->priority == IDLE_PRIORITY){
+                task->state = READY;
+                insert_ready(task);
             }
-            if(current_tcb != NULL){
-                current_tcb->state = TERMINATED;
-                delete_task(current_tcb);
+            else if(task != NULL){
+                task->state = TERMINATED;
+                delete_task(task);
             }
         }
         delay();

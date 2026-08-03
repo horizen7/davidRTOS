@@ -10,5 +10,6 @@ void remove_blocked(TCB* task);
 void queue_tick_blocked(unsigned int);
 TCB* pop_ready_queue(void);
 TCB* pop_blocked_queue(void);
+void print_queues(void);
 
 #endif

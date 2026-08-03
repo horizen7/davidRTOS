@@ -17,6 +17,8 @@ typedef enum{
     READY,
     RUNNING,
     BLOCKED,
+    BLOCKED_MUTEX,
+    BLOCKED_SEMAPHORE,
     TERMINATED
 } taskState;
 

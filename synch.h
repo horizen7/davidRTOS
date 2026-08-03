@@ -11,7 +11,7 @@ typedef struct Mutex{
 
 void mutex_init(Mutex*);
 void mutex_lock(Mutex*);
-void mutex_free(Mutex*);
+void mutex_unlock(Mutex*);
 
 
 

@@ -3,15 +3,19 @@
 #include "scheduler.h"
 #include "tcb.h"
 #include "config.h"
+#include "synch.h"
 
 int main(void){
 
-    task_create(down, LOW, "down");
-    task_create(hello, HIGH, "hello");
-    task_create(count, HIGH, "count");
-    task_create(list, MEDIUM, "list");
-    task_create(point, MEDIUM, "point");
+    mutex_init(&test_mutex);
 
+    task_create(high_task, HIGH, "high");
+    task_create(delay_task, MEDIUM, "delay");
+    task_create(yield_task, MEDIUM, "yield");
+    task_create(mutex_owner, LOW, "owner");
+    task_create(mutex_waiter, LOW, "waiter");
+
+    scheduler_init();
     scheduler_run();
     
     return 0;
