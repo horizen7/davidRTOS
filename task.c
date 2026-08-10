@@ -18,7 +18,7 @@ Semaphore test_sema;
 void task_create(void (*function)(void), taskPriority priority, char name[]){
     TCB* new_tcb = malloc(sizeof(TCB));
     if(new_tcb == NULL){
-        printf("\n### Error: unable to allocate memory. ###\n");
+        printf("\n### ERROR: unable to allocate memory. ###\n");
         return;
     }
     *new_tcb = (TCB){
@@ -36,7 +36,7 @@ void task_create(void (*function)(void), taskPriority priority, char name[]){
     }
     else{
         free(new_tcb);
-        printf("\n### Error: max task count reached. ###\n");
+        printf("\n### ERROR: max task count reached. ###\n");
         return;
     }
     insert_ready(new_tcb);
@@ -104,33 +104,34 @@ void high_task(void){
 }
 void delay_task(void){
     printf("delay: sleeping for 3 ticks\n\n");
-    task_delay(3);
+    task_delay(4);
 }
 void yield_task(void){
     printf("yield: yielding\n\n");
-    task_yield();
+    //task_yield();
 }
-void mutex_owner(void){
-    printf("mutex_owner: locking mutex\n");
+void mutex_locker(void){
+    printf("mutex_locker: locking mutex\n\n");
     mutex_lock(&test_mutex);
-    
-    //printf("unlocking\n\n");
-    //mutex_unlock(&test_mutex);
 }
-void mutex_waiter(void){
-    printf("mutex_waiter: trying mutex\n");
-    mutex_lock(&test_mutex);
-
-    printf("acquired mutex\n\n");
+void mutex_unlocker(void){
+    printf("mutex_unlocker: unlocking\n\n");
     mutex_unlock(&test_mutex);
 }
+void mutex_waiter(void){
+    printf("mutex_waiter: trying mutex\n\n");
+    mutex_lock(&test_mutex);
+
+    //printf("acquired mutex\n\n");
+    //mutex_unlock(&test_mutex);
+}
 void sema_waiter(void){
-    printf("sema_waiter: waiting for semaphore token, count = %d\n\n", sema_count(&test_sema));
     sema_wait(&test_sema);
+    printf("sema_waiter: waiting for token, count = %d\n\n", sema_count(&test_sema));
 }
 void sema_poster(void){
-    printf("sema_poster: posting semaphore\n\n");
     sema_post(&test_sema);
+    printf("sema_poster: posting semaphore, count = %d\n\n", sema_count(&test_sema));
 }
 void quick_task(void){
     printf("quick: done, terminating\n\n");

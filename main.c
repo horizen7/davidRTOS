@@ -8,12 +8,13 @@
 int main(void){
 
     mutex_init(&test_mutex);
-    sema_init(&test_sema, 1);
+    sema_init(&test_sema, 0);
 
     task_create(high_task, HIGH, "high");
     task_create(delay_task, LOW, "delay");
     task_create(yield_task, LOW, "yield");
-    task_create(mutex_owner, MEDIUM, "mutex_owner");
+    task_create(mutex_locker, MEDIUM, "mutex_locker");
+    task_create(mutex_unlocker, LOW, "mutex_unlocker");
     task_create(mutex_waiter, MEDIUM, "mutex_waiter");
     task_create(sema_waiter, LOW, "sema_wait");
     task_create(sema_poster, LOW, "sema_post");

@@ -83,7 +83,7 @@ void mutex_lock(Mutex* mutex){
         return;
     }
     else if(mutex->owner == task){
-        printf("\n### Error: relocking mutex with same task. ###\n");
+        printf("\n### ERROR: relocking mutex with same task. ###\n");
         return;
     }
     else{ //  block task, throw into the back of waiting list.

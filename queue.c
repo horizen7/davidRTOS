@@ -73,7 +73,7 @@ void insert_blocked(TCB* task){ // same as above ^^.
 
 void remove_ready(TCB* task){ // removing from respecitve lists, but states need to be set before call.
     if(task == NULL){
-        printf("\n### Error: trying to work with nullpointer. ###\n");
+        printf("\n### ERROR: trying to work with nullpointer. ###\n");
         return;
     }
     if(task->prev != NULL){
@@ -92,7 +92,7 @@ void remove_ready(TCB* task){ // removing from respecitve lists, but states need
 
 void remove_blocked(TCB* task){ // same as above.
     if(task == NULL){
-        printf("\n### Error: trying to work with nullpointer. ###\n");
+        printf("\n### ERROR: trying to work with nullpointer. ###\n");
         return;
     }
     if(task->prev != NULL){
