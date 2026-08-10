@@ -112,19 +112,19 @@ void mutex_unlock(Mutex* mutex){ // free ownership, pop waitlist and assign new 
     TCB* task = mutex_pop(mutex);
     mutex->owner = task;
     if(task != NULL){
-        task = READY;
+        task->state = READY;
         insert_ready(task);
     }
 }
 
 // SEMAPHORE
 
-void sema_init(Semaphore* sema){
+void sema_init(Semaphore* sema, unsigned int count){
     if(sema == NULL){
         return;
     }
     *sema = (Semaphore){
-            .count = 0,
+            .count = count,
             .wait_head = NULL,
             .wait_tail = NULL
         };
@@ -217,9 +217,13 @@ void sema_wait(Semaphore* sema){ // task asking for token, behave based on count
         // at this point the scheduler should move onto the next task.
         task->state = BLOCKED_SEMAPHORE;
         sema_queue(sema, task);
+        set_current(NULL);
     }
 }
 
 unsigned int sema_count(Semaphore* sema){
+    if(sema == NULL){
+        return 0;
+    }
     return sema->count;
 }

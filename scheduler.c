@@ -63,7 +63,7 @@ void scheduler_run(void){
                 task->state = READY;
                 insert_ready(task);
             }
-            else if(task != NULL){
+            else if(current_tcb != NULL){
                 task->state = TERMINATED;
                 delete_task(task);
             }

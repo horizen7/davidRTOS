@@ -1,6 +1,8 @@
 #include "queue.h"
 #include "tcb.h"
 #include "scheduler.h"
+#include "synch.h"
+#include "task.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -147,6 +149,21 @@ void print_queues(void){ // terminal print helper function
     while(temp != NULL){
         printf("BLOCKED: %s, %d, ticks till wake: %d\n", temp->op_name, temp->priority, (temp->wake_tick - get_global_tick()));
         temp = temp->next;
+    }
+    
+    // for mutex and semaphore blocked tasks.
+    int i;
+    for(i = 0; i < taskCount; i++){
+        temp = master_list[i];
+        if(temp->state == BLOCKED_MUTEX){
+            printf("BLOCKED_MUTEX: %s, %d\n", temp->op_name, temp->priority);
+        }
+    }
+    for(i = 0; i < taskCount; i++){
+        temp = master_list[i];
+        if(temp->state == BLOCKED_SEMAPHORE){
+            printf("BLOCKED_SEMAPHORE: %s, %d\n", temp->op_name, temp->priority);
+        }
     }
     printf("\n");
 }

@@ -20,7 +20,7 @@ typedef struct Semaphore{
     TCB* wait_tail;
 } Semaphore;
 
-void sema_init(Semaphore*);
+void sema_init(Semaphore*, unsigned int);
 void sema_post(Semaphore*);
 void sema_wait(Semaphore*);
 unsigned int sema_count(Semaphore*);

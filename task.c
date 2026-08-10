@@ -11,6 +11,7 @@
 TCB* master_list[MAX_TASKS];
 unsigned int taskCount = 0;
 Mutex test_mutex;
+Semaphore test_sema;
 
 // HELPER FUNCTIONS
 
@@ -99,25 +100,38 @@ void delay(void){ for(int i = 0; i < 1000000000; i++); }
 // CUSTOM TASKS
 
 void high_task(void){
-    printf("high: hello.\n\n");
+    printf("high: hello\n\n");
 }
 void delay_task(void){
     printf("delay: sleeping for 3 ticks\n\n");
+    task_delay(3);
 }
 void yield_task(void){
-    printf("yield: yielding.\n\n");
+    printf("yield: yielding\n\n");
+    task_yield();
 }
 void mutex_owner(void){
-    printf("owner: locking mutex\n");
+    printf("mutex_owner: locking mutex\n");
     mutex_lock(&test_mutex);
     
-    printf("unlocking.\n\n");
-    mutex_unlock(&test_mutex);
+    //printf("unlocking\n\n");
+    //mutex_unlock(&test_mutex);
 }
 void mutex_waiter(void){
-    printf("waiter: trying mutex.\n");
+    printf("mutex_waiter: trying mutex\n");
     mutex_lock(&test_mutex);
 
-    printf("waiter: acquired mutex.\n\n");
+    printf("acquired mutex\n\n");
     mutex_unlock(&test_mutex);
+}
+void sema_waiter(void){
+    printf("sema_waiter: waiting for semaphore token, count = %d\n\n", sema_count(&test_sema));
+    sema_wait(&test_sema);
+}
+void sema_poster(void){
+    printf("sema_poster: posting semaphore\n\n");
+    sema_post(&test_sema);
+}
+void quick_task(void){
+    printf("quick: done, terminating\n\n");
 }
