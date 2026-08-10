@@ -14,5 +14,15 @@ void mutex_lock(Mutex*);
 void mutex_unlock(Mutex*);
 
 
+typedef struct Semaphore{
+    unsigned int count;
+    TCB* wait_head;
+    TCB* wait_tail;
+} Semaphore;
+
+void sema_init(Semaphore*);
+void sema_post(Semaphore*);
+void sema_wait(Semaphore*);
+unsigned int sema_count(Semaphore*);
 
 #endif

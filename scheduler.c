@@ -11,7 +11,7 @@ unsigned int global_tick;
 static TCB* current_tcb;
 
 static void idle_function(void){
-    printf("waiting...\n");
+    printf("waiting...\n\n");
 }
 
 void scheduler_init(void){
@@ -47,9 +47,9 @@ static void tick(void){
 void scheduler_run(void){
     while(1)
     {
-        //  tick the global count, as long as the current tcb isnt null, run its task.
-        //  if task was idle task, throw it back into the ready list.
-        //  else check if current points to null, since delay or yield will throw tcb into respective list.
+        // tick the global count, as long as the current tcb isnt null, run its task.
+        // if task was idle task, throw it back into the ready list.
+        // else check if current points to null, since delay or yield will throw tcb into respective list.
         tick();
         TCB* task = pop_ready_queue();
         current_tcb = task;

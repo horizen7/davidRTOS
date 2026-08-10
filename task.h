@@ -10,6 +10,7 @@ void task_create(void (*function)(void), taskPriority priority, char[]);
 void delete_task(TCB*);
 void delay(void);
 
+// CUSTOM TASKS
 void high_task(void);
 void delay_task(void);
 void yield_task(void);

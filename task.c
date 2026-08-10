@@ -12,7 +12,7 @@ TCB* master_list[MAX_TASKS];
 unsigned int taskCount = 0;
 Mutex test_mutex;
 
-/*** HELPER FUNCTIONS ***/
+// HELPER FUNCTIONS
 
 void task_create(void (*function)(void), taskPriority priority, char name[]){
     TCB* new_tcb = malloc(sizeof(TCB));
@@ -96,18 +96,16 @@ void task_yield(void){
 
 void delay(void){ for(int i = 0; i < 1000000000; i++); }
 
-/*** TASKS ***/
+// CUSTOM TASKS
 
 void high_task(void){
     printf("high: hello.\n\n");
 }
 void delay_task(void){
     printf("delay: sleeping for 3 ticks\n\n");
-    task_delay(3);
 }
 void yield_task(void){
     printf("yield: yielding.\n\n");
-    task_yield();
 }
 void mutex_owner(void){
     printf("owner: locking mutex\n");

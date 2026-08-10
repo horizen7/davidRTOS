@@ -10,8 +10,8 @@ static TCB* blocked_head = NULL;
 
 
 void insert_ready(TCB* task){
-    //  checking if theres nothing, then if it has higher priority than the head.
-    //  then just going through until it finds something less than and inserting itself in the previous position.
+    // checking if theres nothing, then if it has higher priority than the head.
+    // then just going through until it finds something less than and inserting itself in the previous position.
     if(ready_head == NULL){
         ready_head = task;
         task->prev = NULL;
@@ -40,7 +40,7 @@ void insert_ready(TCB* task){
     }
 }
 
-void insert_blocked(TCB* task){ //  same as above ^^.
+void insert_blocked(TCB* task){ // same as above ^^.
     if(blocked_head == NULL){
         blocked_head = task;
         task->prev = NULL;
@@ -69,7 +69,7 @@ void insert_blocked(TCB* task){ //  same as above ^^.
     }
 }
 
-void remove_ready(TCB* task){ // removing from respecitve lists, but states need to be set independently.
+void remove_ready(TCB* task){ // removing from respecitve lists, but states need to be set before call.
     if(task == NULL){
         printf("\n### Error: trying to work with nullpointer. ###\n");
         return;
@@ -88,7 +88,7 @@ void remove_ready(TCB* task){ // removing from respecitve lists, but states need
     task->prev = NULL;
 }
 
-void remove_blocked(TCB* task){ //  same as above.
+void remove_blocked(TCB* task){ // same as above.
     if(task == NULL){
         printf("\n### Error: trying to work with nullpointer. ###\n");
         return;
@@ -137,7 +137,7 @@ TCB* pop_blocked_queue(void){
     return task;
 }
 
-void print_queues(void){
+void print_queues(void){ // terminal print helper function
     TCB* temp = ready_head;
     while(temp != NULL){
         printf("READY: %s, %d\n", temp->op_name, temp->priority);

@@ -6,6 +6,8 @@
 #include "queue.h"
 
 
+// MUTEX 
+
 void mutex_init(Mutex* mutex){
     if(mutex == NULL){
         return;
@@ -113,4 +115,111 @@ void mutex_unlock(Mutex* mutex){ // free ownership, pop waitlist and assign new 
         task = READY;
         insert_ready(task);
     }
+}
+
+// SEMAPHORE
+
+void sema_init(Semaphore* sema){
+    if(sema == NULL){
+        return;
+    }
+    *sema = (Semaphore){
+            .count = 0,
+            .wait_head = NULL,
+            .wait_tail = NULL
+        };
+}
+
+static void sema_queue(Semaphore* sema, TCB* task){ //  essentially same as insert_blocked and insert_ready.
+    if(sema == NULL || task == NULL){
+        return;
+    }
+    if(sema->wait_head == NULL){
+        sema->wait_head = task;
+        sema->wait_tail = task;
+
+        task->prev = NULL;
+        task->next = NULL;
+        return;
+    }
+    if(task->priority > sema->wait_head->priority){
+        sema->wait_head->prev = task;
+        task->prev = NULL;
+        task->next = sema->wait_head;
+        sema->wait_head = task;
+        return;
+    }
+    TCB* current = sema->wait_head;
+    TCB* previous = NULL;
+    while(current != NULL && current->priority >= task->priority){
+        previous = current;
+        current = current->next;
+    }
+    previous->next = task;
+    task->prev = previous;
+    task->next = current;
+
+    if(current != NULL){
+        current->prev = task;
+    }
+    else{
+        sema->wait_tail = task;
+    }
+}
+
+static TCB* sema_pop(Semaphore* sema){
+    if(sema->wait_head == NULL){
+        return NULL;
+    }
+    TCB* task = sema->wait_head;
+    if(task->next != NULL){
+        sema->wait_head = task->next;
+        sema->wait_head->prev = NULL;
+    }
+    else{
+        sema->wait_head = NULL;
+        sema->wait_tail = NULL;
+    }
+    task->next = NULL;
+    task->prev = NULL;
+
+    return task;
+}
+
+void sema_post(Semaphore* sema){ // pop waitlist and insert ready, if no queue increment count.
+    if(sema == NULL){
+        return;
+    }
+    if(sema->wait_head != NULL){
+        TCB* task = sema_pop(sema);
+        
+        task->state = READY;
+        insert_ready(task);
+    }
+    else{
+        sema->count++;
+    }
+}
+
+void sema_wait(Semaphore* sema){ // task asking for token, behave based on count.
+    if(sema == NULL){
+        return;
+    }
+    if(sema->count > 0){
+        sema->count--;
+    }
+    else{
+        TCB* task = get_current();
+        if(task == NULL){
+            return;
+        }
+
+        // at this point the scheduler should move onto the next task.
+        task->state = BLOCKED_SEMAPHORE;
+        sema_queue(sema, task);
+    }
+}
+
+unsigned int sema_count(Semaphore* sema){
+    return sema->count;
 }
