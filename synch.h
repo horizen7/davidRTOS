@@ -2,11 +2,11 @@
 #define SYNCH_H
 
 #include "tcb.h"
+#include <stdint.h>
 
 typedef struct Mutex{
     TCB* owner;
     TCB* wait_head;
-    TCB* wait_tail;
 } Mutex;
 
 void mutex_init(Mutex*);
@@ -17,7 +17,6 @@ void mutex_unlock(Mutex*);
 typedef struct Semaphore{
     unsigned int count;
     TCB* wait_head;
-    TCB* wait_tail;
 } Semaphore;
 
 void sema_init(Semaphore*, unsigned int);
@@ -28,7 +27,6 @@ unsigned int sema_count(Semaphore*);
 typedef struct EventGroup{
     uint32_t flags;
     TCB* wait_head;
-    TCB* wait_tail;
 } EventGroup;
 
 typedef enum {
@@ -37,7 +35,6 @@ typedef enum {
 } EventWaitMode;
 
 void event_init(EventGroup*);
-void event_check(EventGroup*, uint32_t);
 void event_set(EventGroup*, uint32_t);
 void event_clear(EventGroup*, uint32_t);
 void event_wait(EventGroup*, uint32_t);

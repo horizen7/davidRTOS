@@ -15,14 +15,12 @@ void mutex_init(Mutex* mutex){
     *mutex = (Mutex){
             .owner = NULL,
             .wait_head = NULL,
-            .wait_tail = NULL
         };
 }
 
 static void mutex_queue(Mutex* mutex, TCB* task){ //  essentially same as insert_blocked and insert_ready.
     if(mutex->wait_head == NULL){
         mutex->wait_head = task;
-        mutex->wait_tail = task;
 
         task->prev = NULL;
         task->next = NULL;
@@ -48,9 +46,6 @@ static void mutex_queue(Mutex* mutex, TCB* task){ //  essentially same as insert
     if(current != NULL){
         current->prev = task;
     }
-    else{
-        mutex->wait_tail = task;
-    }
 }
 
 static TCB* mutex_pop(Mutex* mutex){
@@ -64,7 +59,6 @@ static TCB* mutex_pop(Mutex* mutex){
     }
     else{
         mutex->wait_head = NULL;
-        mutex->wait_tail = NULL;
     }
     task->next = NULL;
     task->prev = NULL;
@@ -126,7 +120,6 @@ void sema_init(Semaphore* sema, unsigned int count){
     *sema = (Semaphore){
             .count = count,
             .wait_head = NULL,
-            .wait_tail = NULL
         };
 }
 
@@ -136,7 +129,6 @@ static void sema_queue(Semaphore* sema, TCB* task){ //  essentially same as inse
     }
     if(sema->wait_head == NULL){
         sema->wait_head = task;
-        sema->wait_tail = task;
 
         task->prev = NULL;
         task->next = NULL;
@@ -162,9 +154,7 @@ static void sema_queue(Semaphore* sema, TCB* task){ //  essentially same as inse
     if(current != NULL){
         current->prev = task;
     }
-    else{
-        sema->wait_tail = task;
-    }
+
 }
 
 static TCB* sema_pop(Semaphore* sema){
@@ -178,7 +168,6 @@ static TCB* sema_pop(Semaphore* sema){
     }
     else{
         sema->wait_head = NULL;
-        sema->wait_tail = NULL;
     }
     task->next = NULL;
     task->prev = NULL;
@@ -238,11 +227,10 @@ void event_init(EventGroup* event_group){
     *event_group = (EventGroup){
         .flags = 0,
         .wait_head = NULL,
-        .wait_tail = NULL
     };
 }
 
-void event_single(TCB* task, EventGroup* event_group, uint32_t event){
+static void event_single(TCB* task, EventGroup* event_group){
     if(task == NULL || event_group == NULL){
         return;
     }
@@ -259,7 +247,7 @@ void event_single(TCB* task, EventGroup* event_group, uint32_t event){
     task->prev = NULL;
 }
 
-void event_check(EventGroup* event_group, uint32_t event){
+static void event_check(EventGroup* event_group, uint32_t event){
     /* go through event groups waitlist and check if any are waiting
        on the event passed through. if mode is wait_any wake task, remove from 
        blocked, if wait_all check all flags in event_group */
@@ -270,21 +258,23 @@ void event_check(EventGroup* event_group, uint32_t event){
         return;
     }
     TCB* task = event_group->wait_head;
-    TCB* temp = task;
     while(task != NULL){
+        TCB* temp = task->next;
+
         if(task->wait_flags & event){
             if(task->event_mode == WAIT_ANY){
                 // take out of wait list then insert ready
-                event_single(task, event_group, event);
+                event_single(task, event_group);
                 task->state = READY;
                 insert_ready(task);
             }
-            else{ // WAIT_ALL
-                if(task)
+            else if((event_group->flags & task->wait_flags) == task->wait_flags){ // checking for WAIT_ALL
+                event_single(task, event_group);
+                task->state = READY;
+                insert_ready(task);
             }
         }
-        
-        current = current->next;
+        task = temp;
     }
 }
 
@@ -293,6 +283,7 @@ void event_set(EventGroup* event_group, uint32_t event){ // sets the respective 
         return;
     }
     event_group->flags |= event;
+    event_check(event_group, event);
 }
 
 void event_clear(EventGroup* event_group, uint32_t event){
@@ -311,6 +302,9 @@ void event_wait(EventGroup* event_group, uint32_t event){ // if the event hasnt 
     }
 }
 
-void event_get(EventGroup* event_group, uint32_t event){
-    
+uint32_t event_get(EventGroup* event_group, uint32_t event){
+    if(event_group == NULL){
+        return;
+    }
+    return event_group->flags & event;
 }
