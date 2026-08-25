@@ -4,7 +4,7 @@
 #include "scheduler.h"
 #include <stdio.h>
 #include "queue.h"
-
+#include <stdint.h>
 
 // MUTEX 
 
@@ -226,4 +226,91 @@ unsigned int sema_count(Semaphore* sema){
         return 0;
     }
     return sema->count;
+}
+
+// EVENT FLAGS
+// want to initialize, set, clear, read, and wait.
+
+void event_init(EventGroup* event_group){
+    if(event_group == NULL){
+        return;
+    }
+    *event_group = (EventGroup){
+        .flags = 0,
+        .wait_head = NULL,
+        .wait_tail = NULL
+    };
+}
+
+void event_single(TCB* task, EventGroup* event_group, uint32_t event){
+    if(task == NULL || event_group == NULL){
+        return;
+    }
+    if(task->prev != NULL){
+        task->prev->next = task->next;
+    }
+    else{
+        event_group->wait_head = task->next;
+    }
+    if(task->next != NULL){
+        task->next->prev = task->prev;
+    }
+    task->next = NULL;
+    task->prev = NULL;
+}
+
+void event_check(EventGroup* event_group, uint32_t event){
+    /* go through event groups waitlist and check if any are waiting
+       on the event passed through. if mode is wait_any wake task, remove from 
+       blocked, if wait_all check all flags in event_group */
+    if(event_group == NULL){
+        return;
+    }
+    if(event_group->wait_head == NULL){
+        return;
+    }
+    TCB* task = event_group->wait_head;
+    TCB* temp = task;
+    while(task != NULL){
+        if(task->wait_flags & event){
+            if(task->event_mode == WAIT_ANY){
+                // take out of wait list then insert ready
+                event_single(task, event_group, event);
+                task->state = READY;
+                insert_ready(task);
+            }
+            else{ // WAIT_ALL
+                if(task)
+            }
+        }
+        
+        current = current->next;
+    }
+}
+
+void event_set(EventGroup* event_group, uint32_t event){ // sets the respective event, then check waitlist to see if any were waiting on it, call event_check or something
+    if(event_group == NULL){
+        return;
+    }
+    event_group->flags |= event;
+}
+
+void event_clear(EventGroup* event_group, uint32_t event){
+    if(event_group == NULL){
+        return;
+    }
+    event_group->flags &= ~event;
+}
+
+void event_wait(EventGroup* event_group, uint32_t event){ // if the event hasnt happened, throw into blocked queue
+    if(event_group == NULL){
+        return;
+    }
+    if(event_group->flags & event){
+
+    }
+}
+
+void event_get(EventGroup* event_group, uint32_t event){
+    
 }

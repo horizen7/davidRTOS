@@ -8,6 +8,7 @@
 #include "synch.h"
 
 
+
 TCB* master_list[MAX_TASKS];
 unsigned int taskCount = 0;
 Mutex test_mutex;
@@ -27,7 +28,9 @@ void task_create(void (*function)(void), taskPriority priority, char name[]){
         .priority = priority,
         .wake_tick = 0,
         .next = NULL,
-        .prev = NULL
+        .prev = NULL,
+        .wait_flags = 0,
+        .event_mode = WAIT_ANY
     };
     strcpy(new_tcb->op_name, name);
     if(taskCount < MAX_TASKS){

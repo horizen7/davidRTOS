@@ -11,6 +11,9 @@ typedef struct TCB{
     int priority;//1, 2, 3, asending importance
     unsigned int wake_tick;
     char op_name[10];
+
+    unsigned int wait_flags;
+    EventWaitMode event_mode;
 } TCB;
 
 typedef enum{
@@ -19,6 +22,7 @@ typedef enum{
     BLOCKED,
     BLOCKED_MUTEX,
     BLOCKED_SEMAPHORE,
+    BLOCKED_EVENT,
     TERMINATED
 } taskState;
 
