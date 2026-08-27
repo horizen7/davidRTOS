@@ -37,7 +37,7 @@ typedef enum {
 void event_init(EventGroup*);
 void event_set(EventGroup*, uint32_t);
 void event_clear(EventGroup*, uint32_t);
-void event_wait(EventGroup*, uint32_t);
-void event_get(EventGroup*, uint32_t);
+void event_wait(EventGroup*, uint32_t, EventWaitMode);
+uint32_t event_get(EventGroup*, uint32_t);
 
 #endif

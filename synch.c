@@ -41,7 +41,7 @@ static void synch_queue_insert(TCB** head, TCB* task){
 }
 
 static TCB* synch_pop(TCB** head){
-    if(*head == NULL){
+    if(head == NULL || *head == NULL){
         return NULL;
     }
     TCB* task = *head;
@@ -86,7 +86,7 @@ void mutex_lock(Mutex* mutex){
     }
     else{ //  block task, throw into the back of waiting list.
         task->state = BLOCKED_MUTEX;
-        synch_queue_insert(&mutex, task);
+        synch_queue_insert(&mutex->wait_head, task);
         set_current(NULL);
     }
     
@@ -107,7 +107,7 @@ void mutex_unlock(Mutex* mutex){ // free ownership, pop waitlist and assign new 
         return;
     }
 
-    TCB* task = synch_pop(&mutex);
+    TCB* task = synch_pop(&mutex->wait_head);
     mutex->owner = task;
     if(task != NULL){
         task->state = READY;
@@ -132,10 +132,11 @@ void sema_post(Semaphore* sema){ // pop waitlist and insert ready, if no queue i
         return;
     }
     if(sema->wait_head != NULL){
-        TCB* task = synch_pop(&sema);
-        
-        task->state = READY;
-        insert_ready(task);
+        TCB* task = synch_pop(&sema->wait_head);
+        if(task != NULL){
+            task->state = READY;
+            insert_ready(task);
+        }
     }
     else{
         sema->count++;
@@ -157,7 +158,7 @@ void sema_wait(Semaphore* sema){ // task asking for token, behave based on count
 
         // at this point the scheduler should move onto the next task.
         task->state = BLOCKED_SEMAPHORE;
-        synch_queue_insert(&sema, task);
+        synch_queue_insert(&sema->wait_head, task);
         set_current(NULL);
     }
 }
@@ -182,8 +183,8 @@ void event_init(EventGroup* event_group){
     };
 }
 
-static void event_single(TCB* task, EventGroup* event_group){
-    if(task == NULL || event_group == NULL){
+static void event_single(EventGroup* event_group, TCB* task){ // detach event from waitlist
+    if(event_group == NULL || task == NULL){
         return;
     }
     if(task->prev != NULL){
@@ -214,14 +215,14 @@ static void event_check(EventGroup* event_group, uint32_t event){
         TCB* temp = task->next;
 
         if(task->wait_flags & event){
-            if(task->event_mode == WAIT_ANY){
+            if(task->wait_mode == WAIT_ANY){
                 // take out of wait list then insert ready
-                event_single(task, event_group);
+                event_single(event_group, task);
                 task->state = READY;
                 insert_ready(task);
             }
             else if((event_group->flags & task->wait_flags) == task->wait_flags){ // checking for WAIT_ALL
-                event_single(task, event_group);
+                event_single(event_group, task);
                 task->state = READY;
                 insert_ready(task);
             }
@@ -245,18 +246,35 @@ void event_clear(EventGroup* event_group, uint32_t event){
     event_group->flags &= ~event;
 }
 
-void event_wait(EventGroup* event_group, uint32_t event){ // if the event hasnt happened, throw into blocked queue
+void event_wait(EventGroup* event_group, uint32_t event, EventWaitMode mode){ // if the event hasnt happened, throw into blocked queue
     if(event_group == NULL){
         return;
     }
-    if(event_group->flags & event){
-
+    TCB* task = get_current();
+    if(task == NULL){
+        return;
     }
+    task->wait_flags = event;
+    task->wait_mode = mode;
+
+    if(mode == WAIT_ANY){
+        if((event_group->flags & event) != 0){
+            printf("Event conditions met.\n");
+            return;
+        }
+    }
+    else if((event_group->flags & event) == event){ // WAIT_ALL
+        printf("Event conditions met.\n");
+        return;
+    }
+    task->state = BLOCKED_EVENT;
+    synch_queue_insert(&event_group->wait_head, task);
+    set_current(NULL);
 }
 
 uint32_t event_get(EventGroup* event_group, uint32_t event){
     if(event_group == NULL){
-        return;
+        return 0;
     }
     return event_group->flags & event;
 }

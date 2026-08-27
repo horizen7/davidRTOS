@@ -13,7 +13,7 @@ typedef struct TCB{
     char op_name[10];
 
     unsigned int wait_flags;
-    EventWaitMode event_mode;
+    EventWaitMode wait_mode;
 } TCB;
 
 typedef enum{

@@ -30,7 +30,7 @@ void task_create(void (*function)(void), taskPriority priority, char name[]){
         .next = NULL,
         .prev = NULL,
         .wait_flags = 0,
-        .event_mode = WAIT_ANY
+        .wait_mode = WAIT_ANY
     };
     strcpy(new_tcb->op_name, name);
     if(taskCount < MAX_TASKS){
