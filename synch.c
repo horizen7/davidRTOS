@@ -6,6 +6,58 @@
 #include "queue.h"
 #include <stdint.h>
 
+// generic queue and pop
+
+static void synch_queue_insert(TCB** head, TCB* task){
+    if(head == NULL || task == NULL){
+        return;
+    }
+    if(*head == NULL){
+        *head = task;
+
+        task->prev = NULL;
+        task->next = NULL;
+        return;
+    }
+    if(task->priority > (*head)->priority){
+        (*head)->prev = task;
+        task->prev = NULL;
+        task->next = *head;
+        *head = task;
+        return;
+    }
+    TCB* current = *head;
+    TCB* previous = NULL;
+    while(current != NULL && current->priority >= task->priority){
+        previous = current;
+        current = current->next;
+    }
+    previous->next = task;
+    task->prev = previous;
+    task->next = current;
+    if(current != NULL){
+        current->prev = task;
+    }
+}
+
+static TCB* synch_pop(TCB** head){
+    if(*head == NULL){
+        return NULL;
+    }
+    TCB* task = *head;
+    if(task->next != NULL){
+        *head = task->next;
+        (*head)->prev = NULL;
+    }
+    else{
+        *head = NULL;
+    }
+    task->next = NULL;
+    task->prev = NULL;
+
+    return task;
+}
+
 // MUTEX 
 
 void mutex_init(Mutex* mutex){
@@ -16,54 +68,6 @@ void mutex_init(Mutex* mutex){
             .owner = NULL,
             .wait_head = NULL,
         };
-}
-
-static void mutex_queue(Mutex* mutex, TCB* task){ //  essentially same as insert_blocked and insert_ready.
-    if(mutex->wait_head == NULL){
-        mutex->wait_head = task;
-
-        task->prev = NULL;
-        task->next = NULL;
-        return;
-    }
-    if(task->priority > mutex->wait_head->priority){
-        mutex->wait_head->prev = task;
-        task->prev = NULL;
-        task->next = mutex->wait_head;
-        mutex->wait_head = task;
-        return;
-    }
-    TCB* current = mutex->wait_head;
-    TCB* previous = NULL;
-    while(current != NULL && current->priority >= task->priority){
-        previous = current;
-        current = current->next;
-    }
-    previous->next = task;
-    task->prev = previous;
-    task->next = current;
-
-    if(current != NULL){
-        current->prev = task;
-    }
-}
-
-static TCB* mutex_pop(Mutex* mutex){
-    if(mutex->wait_head == NULL){
-        return NULL;
-    }
-    TCB* task = mutex->wait_head;
-    if(task->next != NULL){
-        mutex->wait_head = task->next;
-        mutex->wait_head->prev = NULL;
-    }
-    else{
-        mutex->wait_head = NULL;
-    }
-    task->next = NULL;
-    task->prev = NULL;
-
-    return task;
 }
 
 void mutex_lock(Mutex* mutex){
@@ -82,7 +86,7 @@ void mutex_lock(Mutex* mutex){
     }
     else{ //  block task, throw into the back of waiting list.
         task->state = BLOCKED_MUTEX;
-        mutex_queue(mutex, task);
+        synch_queue_insert(&mutex, task);
         set_current(NULL);
     }
     
@@ -103,7 +107,7 @@ void mutex_unlock(Mutex* mutex){ // free ownership, pop waitlist and assign new 
         return;
     }
 
-    TCB* task = mutex_pop(mutex);
+    TCB* task = synch_pop(&mutex);
     mutex->owner = task;
     if(task != NULL){
         task->state = READY;
@@ -123,64 +127,12 @@ void sema_init(Semaphore* sema, unsigned int count){
         };
 }
 
-static void sema_queue(Semaphore* sema, TCB* task){ //  essentially same as insert_blocked and insert_ready.
-    if(sema == NULL || task == NULL){
-        return;
-    }
-    if(sema->wait_head == NULL){
-        sema->wait_head = task;
-
-        task->prev = NULL;
-        task->next = NULL;
-        return;
-    }
-    if(task->priority > sema->wait_head->priority){
-        sema->wait_head->prev = task;
-        task->prev = NULL;
-        task->next = sema->wait_head;
-        sema->wait_head = task;
-        return;
-    }
-    TCB* current = sema->wait_head;
-    TCB* previous = NULL;
-    while(current != NULL && current->priority >= task->priority){
-        previous = current;
-        current = current->next;
-    }
-    previous->next = task;
-    task->prev = previous;
-    task->next = current;
-
-    if(current != NULL){
-        current->prev = task;
-    }
-
-}
-
-static TCB* sema_pop(Semaphore* sema){
-    if(sema->wait_head == NULL){
-        return NULL;
-    }
-    TCB* task = sema->wait_head;
-    if(task->next != NULL){
-        sema->wait_head = task->next;
-        sema->wait_head->prev = NULL;
-    }
-    else{
-        sema->wait_head = NULL;
-    }
-    task->next = NULL;
-    task->prev = NULL;
-
-    return task;
-}
-
 void sema_post(Semaphore* sema){ // pop waitlist and insert ready, if no queue increment count.
     if(sema == NULL){
         return;
     }
     if(sema->wait_head != NULL){
-        TCB* task = sema_pop(sema);
+        TCB* task = synch_pop(&sema);
         
         task->state = READY;
         insert_ready(task);
@@ -205,7 +157,7 @@ void sema_wait(Semaphore* sema){ // task asking for token, behave based on count
 
         // at this point the scheduler should move onto the next task.
         task->state = BLOCKED_SEMAPHORE;
-        sema_queue(sema, task);
+        synch_queue_insert(&sema, task);
         set_current(NULL);
     }
 }
