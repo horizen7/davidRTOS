@@ -17,6 +17,7 @@ static void synch_queue_insert(TCB** head, TCB* task){
 
         task->prev = NULL;
         task->next = NULL;
+        task->list_head = head;
         return;
     }
     if(task->priority > (*head)->priority){
@@ -24,6 +25,7 @@ static void synch_queue_insert(TCB** head, TCB* task){
         task->prev = NULL;
         task->next = *head;
         *head = task;
+        task->list_head = head;
         return;
     }
     TCB* current = *head;
@@ -35,6 +37,8 @@ static void synch_queue_insert(TCB** head, TCB* task){
     previous->next = task;
     task->prev = previous;
     task->next = current;
+    task->list_head = head;
+
     if(current != NULL){
         current->prev = task;
     }
@@ -54,6 +58,7 @@ static TCB* synch_pop(TCB** head){
     }
     task->next = NULL;
     task->prev = NULL;
+    task->list_head = NULL;
 
     return task;
 }

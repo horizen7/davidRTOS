@@ -1,20 +1,6 @@
 #ifndef TCB_H
 #define TCB_H
-
-typedef struct TCB{
-    void (*task_function)(void);
-
-    struct TCB* prev;
-    struct TCB* next;
-
-    int state;
-    int priority;//1, 2, 3, asending importance
-    unsigned int wake_tick;
-    char op_name[10];
-
-    unsigned int wait_flags;
-    EventWaitMode wait_mode;
-} TCB;
+#include <stdint.h>
 
 typedef enum{
     READY,
@@ -32,5 +18,22 @@ typedef enum{
     MEDIUM,
     HIGH
 } taskPriority;
+
+typedef struct TCB{
+    void (*task_function)(void);
+
+    struct TCB* prev;
+    struct TCB* next;
+    struct TCB** list_head;
+
+    taskState state;
+    taskPriority priority;//1, 2, 3, asending importance
+    unsigned int wake_tick;
+    char op_name[10];
+
+    uint32_t* stack_pointer;
+    unsigned int wait_flags;
+    EventWaitMode wait_mode;
+} TCB;
 
 #endif

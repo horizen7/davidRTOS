@@ -45,6 +45,7 @@ void insert_ready(TCB* task){
 void insert_blocked(TCB* task){ // same as above ^^.
     if(blocked_head == NULL){
         blocked_head = task;
+        task->blocking_list_head = task;
         task->prev = NULL;
         task->next = NULL;
         return;
