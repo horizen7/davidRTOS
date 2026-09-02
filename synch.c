@@ -105,6 +105,7 @@ void mutex_unlock(Mutex* mutex){ // free ownership, pop waitlist and assign new 
         return;
     }
     if(mutex->owner != get_current()){
+        printf("### ERROR: attempting to unlock mutex it does not own. ###/n");
         return;
     }
     if(mutex->wait_head == NULL){
@@ -203,6 +204,8 @@ static void event_single(EventGroup* event_group, TCB* task){ // detach event fr
     }
     task->next = NULL;
     task->prev = NULL;
+    task->wait_flags = 0;
+    task->list_head = NULL;
 }
 
 static void event_check(EventGroup* event_group, uint32_t event){
@@ -226,10 +229,12 @@ static void event_check(EventGroup* event_group, uint32_t event){
                 task->state = READY;
                 insert_ready(task);
             }
-            else if((event_group->flags & task->wait_flags) == task->wait_flags){ // checking for WAIT_ALL
-                event_single(event_group, task);
-                task->state = READY;
-                insert_ready(task);
+            else if(task->wait_mode == WAIT_ALL){
+                if((event_group->flags & task->wait_flags) == task->wait_flags){ // checking for WAIT_ALL
+                    event_single(event_group, task);
+                    task->state = READY;
+                    insert_ready(task);
+                }
             }
         }
         task = temp;

@@ -14,10 +14,14 @@ static TCB* blocked_head = NULL;
 void insert_ready(TCB* task){
     // checking if theres nothing, then if it has higher priority than the head.
     // then just going through until it finds something less than and inserting itself in the previous position.
+    if(task == NULL){
+        return;
+    }
     if(ready_head == NULL){
         ready_head = task;
         task->prev = NULL;
         task->next = NULL;
+        task->list_head = &ready_head;
         return;
     }
     if(task->priority > ready_head->priority){
@@ -25,6 +29,7 @@ void insert_ready(TCB* task){
         task->next = ready_head;
         task->prev = NULL;
         ready_head = task;
+        task->list_head = &ready_head;
         return;
     }
     TCB* current = ready_head;
@@ -36,6 +41,7 @@ void insert_ready(TCB* task){
     previous->next = task;
     task->prev = previous;
     task->next = current;
+    task->list_head = &ready_head;
 
     if(current != NULL){
         current->prev = task;
@@ -43,11 +49,14 @@ void insert_ready(TCB* task){
 }
 
 void insert_blocked(TCB* task){ // same as above ^^.
+    if(task == NULL){
+        return;
+    }
     if(blocked_head == NULL){
         blocked_head = task;
-        task->blocking_list_head = task;
         task->prev = NULL;
         task->next = NULL;
+        task->list_head = &blocked_head;
         return;
     }
     if(task->wake_tick < blocked_head->wake_tick){
@@ -55,6 +64,7 @@ void insert_blocked(TCB* task){ // same as above ^^.
         task->next = blocked_head;
         task->prev = NULL;
         blocked_head = task;
+        task->list_head = &blocked_head;
         return;
     }
     TCB* current = blocked_head;
@@ -66,6 +76,7 @@ void insert_blocked(TCB* task){ // same as above ^^.
     previous->next = task;
     task->prev = previous;
     task->next = current;
+    task->list_head = &blocked_head;
 
     if(current != NULL){
         current->prev = task;
