@@ -83,16 +83,16 @@ void insert_blocked(TCB* task){ // same as above ^^.
     }
 }
 
-void remove_ready(TCB* task){ // removing from respecitve lists, but states need to be set before call.
-    if(task == NULL){
-        printf("\n### ERROR: trying to work with nullpointer. ###\n");
+void remove_from_list(TCB* task){ // removes tcb from any list.
+    if(task == NULL || task->list_head == NULL){
+        printf("\n### ERROR: trying to work with nullpointer or not in list. ###\n");
         return;
     }
     if(task->prev != NULL){
         task->prev->next = task->next;
     }
     else{
-        ready_head = task->next;
+        *(task->list_head) = task->next;
     }
     if(task->next != NULL){
         task->next->prev = task->prev;
@@ -100,25 +100,7 @@ void remove_ready(TCB* task){ // removing from respecitve lists, but states need
     
     task->next = NULL;
     task->prev = NULL;
-}
-
-void remove_blocked(TCB* task){ // same as above.
-    if(task == NULL){
-        printf("\n### ERROR: trying to work with nullpointer. ###\n");
-        return;
-    }
-    if(task->prev != NULL){
-        task->prev->next = task->next;
-    }
-    else{
-        blocked_head = task->next;
-    }
-    if(task->next != NULL){
-        task->next->prev = task->prev;
-    }
-    
-    task->next = NULL;
-    task->prev = NULL;
+    task->list_head = NULL;
 }
 
 void queue_tick_blocked(unsigned int tick){

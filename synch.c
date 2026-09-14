@@ -65,14 +65,41 @@ static TCB* synch_pop(TCB** head){
 
 // MUTEX 
 
+static Mutex* mutex_list[MAX_MUTEX];
+static uint32_t mutex_count = 0;
+
 void mutex_init(Mutex* mutex){
     if(mutex == NULL){
+        return;
+    }
+    if(mutex_count == MAX_MUTEX){
+        printf("### Error: reached max mutex count. ###\n");
         return;
     }
     *mutex = (Mutex){
             .owner = NULL,
             .wait_head = NULL,
         };
+    // now adding to master list
+    mutex_list[mutex_count] = mutex;
+    mutex_count++;
+}
+
+static void mutex_release(Mutex* mutex){ // internal function that actually reassigns ownership
+    if(mutex == NULL){
+        return;
+    }
+    if(mutex->wait_head == NULL){
+        mutex->owner = NULL;
+        return;
+    }
+
+    TCB* task = synch_pop(&mutex->wait_head);
+    mutex->owner = task;
+    if(task != NULL){
+        task->state = READY;
+        insert_ready(task);
+    }
 }
 
 void mutex_lock(Mutex* mutex){
@@ -89,7 +116,7 @@ void mutex_lock(Mutex* mutex){
         printf("\n### ERROR: relocking mutex with same task. ###\n");
         return;
     }
-    else{ //  block task, throw into the back of waiting list.
+    else{ //  block task, throw into priority-based wait list.
         task->state = BLOCKED_MUTEX;
         synch_queue_insert(&mutex->wait_head, task);
         set_current(NULL);
@@ -105,19 +132,20 @@ void mutex_unlock(Mutex* mutex){ // free ownership, pop waitlist and assign new 
         return;
     }
     if(mutex->owner != get_current()){
-        printf("### ERROR: attempting to unlock mutex it does not own. ###/n");
+        printf("### ERROR: attempting to unlock mutex it does not own. ###\n");
         return;
     }
-    if(mutex->wait_head == NULL){
-        mutex->owner = NULL;
-        return;
-    }
+    mutex_release(mutex);
+}
 
-    TCB* task = synch_pop(&mutex->wait_head);
-    mutex->owner = task;
-    if(task != NULL){
-        task->state = READY;
-        insert_ready(task);
+void mutex_cleanup(TCB* task){ // look through master list of mutex check if it matches the owner of any release as necessary
+    if(task == NULL){
+        return;
+    }
+    for(int i = 0; i < mutex_count; i++){
+        if(mutex_list[i]->owner == task){
+            mutex_release(mutex_list[i]);
+        }
     }
 }
 

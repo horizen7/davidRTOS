@@ -30,7 +30,8 @@ void task_create(void (*function)(void), taskPriority priority, char name[]){
         .next = NULL,
         .prev = NULL,
         .wait_flags = 0,
-        .wait_mode = WAIT_ANY
+        .wait_mode = WAIT_ANY,
+        .list_head = NULL
     };
     strcpy(new_tcb->op_name, name);
     if(taskCount < MAX_TASKS){
@@ -46,21 +47,13 @@ void task_create(void (*function)(void), taskPriority priority, char name[]){
 }
 
 void delete_task(TCB* task){
+    if(task == NULL){
+        return;
+    }
     for(unsigned int i = 0; i < taskCount; i++){
-        if(master_list[i] == task){
-            switch(task->state){
-                case READY:
-                    remove_ready(task);
-                    break;
-                case BLOCKED:
-                    remove_blocked(task);
-                    break;
-                case RUNNING:
-                    return;
-                case TERMINATED:
-                    break;
-            }
-
+        if(master_list[i] == task){ // check if task is in mutex so it doesnt delete the owner of mutex
+            if(task-)
+            remove_from_list(task);
             for(unsigned int j = i; j < taskCount - 1; j++){
                 master_list[j] = master_list[j + 1];
             }
@@ -70,7 +63,6 @@ void delete_task(TCB* task){
             free(task);
             taskCount--;
             master_list[taskCount] = NULL;
-            
             
             return;
         }

@@ -3,6 +3,7 @@
 
 #include "tcb.h"
 #include <stdint.h>
+#include "config.h"
 
 typedef struct Mutex{
     TCB* owner;
@@ -12,7 +13,7 @@ typedef struct Mutex{
 void mutex_init(Mutex*);
 void mutex_lock(Mutex*);
 void mutex_unlock(Mutex*);
-
+void mutex_cleanup(TCB*);
 
 typedef struct Semaphore{
     unsigned int count;
