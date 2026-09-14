@@ -66,7 +66,7 @@ static TCB* synch_pop(TCB** head){
 // MUTEX 
 
 static Mutex* mutex_list[MAX_MUTEX];
-static uint32_t mutex_count = 0;
+static uint16_t mutex_count = 0;
 
 void mutex_init(Mutex* mutex){
     if(mutex == NULL){
@@ -142,7 +142,7 @@ void mutex_cleanup(TCB* task){ // look through master list of mutex check if it 
     if(task == NULL){
         return;
     }
-    for(int i = 0; i < mutex_count; i++){
+    for(uint16_t i = 0; i < mutex_count; i++){
         if(mutex_list[i]->owner == task){
             mutex_release(mutex_list[i]);
         }

@@ -51,8 +51,8 @@ void delete_task(TCB* task){
         return;
     }
     for(unsigned int i = 0; i < taskCount; i++){
-        if(master_list[i] == task){ // check if task is in mutex so it doesnt delete the owner of mutex
-            if(task-)
+        if(master_list[i] == task){
+            mutex_cleanup(task); // release mutexes owned by task
             remove_from_list(task);
             for(unsigned int j = i; j < taskCount - 1; j++){
                 master_list[j] = master_list[j + 1];
